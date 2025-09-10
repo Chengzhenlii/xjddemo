@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>西安建筑科技大学通勤班车时刻表</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#165DFF",
+              secondary: "#36CFC9",
+              neutral: "#F5F7FA",
+              dark: "#1D2129",
+              light: "#86909C",
+            },
+            fontFamily: {
+              sans: ["Inter", "system-ui", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <style type="text/tailwindcss">
+      @layer utilities {
+        .content-auto {
+          content-visibility: auto;
+        }
+        .bus-card {
+          @apply bg-white rounded-xl shadow-sm p-4 mb-4 transition-all duration-300;
+        }
+        .time-item {
+          @apply inline-block px-2 py-1 rounded-md text-sm mr-2 mb-2;
+        }
+        .time-primary {
+          @apply bg-primary/10 text-primary;
+        }
+        .time-secondary {
+          @apply bg-secondary/10 text-secondary;
+        }
+        .tab-active {
+          @apply bg-primary text-white;
+        }
+        .tab-inactive {
+          @apply bg-neutral text-dark;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-neutral min-h-screen font-sans text-dark">
+    <!-- 顶部导航 -->
+    <header class="bg-white shadow-sm sticky top-0 z-10">
+      <div class="container mx-auto px-4 py-4">
+        <h1 class="text-[clamp(1.2rem,5vw,1.5rem)] font-bold text-center">
+          通勤班车时刻表
+        </h1>
+        <p class="text-xs text-light text-center mt-1">试运行版</p>
+      </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-5">
+      <!-- 切换选项卡 -->
+      <div class="mb-6">
+        <!-- 日期切换 -->
+        <div class="flex rounded-lg overflow-hidden mb-3">
+          <button
+            id="weekdayBtn"
+            class="flex-1 py-3 text-center font-medium tab-active transition-all duration-300"
+          >
+            周一至周五
+          </button>
+          <button
+            id="weekendBtn"
+            class="flex-1 py-3 text-center font-medium tab-inactive transition-all duration-300"
+          >
+            周六周日
+          </button>
+        </div>
+
+        <!-- 时令切换 -->
+        <div class="flex rounded-lg overflow-hidden">
+          <button
+            id="summerBtn"
+            class="flex-1 py-3 text-center font-medium tab-active transition-all duration-300"
+          >
+            夏令时 (5.1-9.30)
+          </button>
+          <button
+            id="winterBtn"
+            class="flex-1 py-3 text-center font-medium tab-inactive transition-all duration-300"
+          >
+            冬令时 (10.1-4.30)
+          </button>
+        </div>
+      </div>
+
+      <!-- 雁塔↔草堂 时刻表 -->
+      <section class="bus-card">
+        <h2 class="text-lg font-bold mb-3 flex items-center">
+          <i class="fa fa-bus text-primary mr-2"></i>
+          雁塔校区 ↔ 草堂校区
+        </h2>
+
+        <!-- 雁塔→草堂 - 工作日 -->
+        <div id="ytToCtWeekday" class="mb-4">
+          <h3 class="font-semibold text-primary mb-2 flex items-center">
+            <i class="fa fa-arrow-right mr-1"></i> 雁塔校区 → 草堂校区
+          </h3>
+          <div class="mb-2">
+            <span class="text-sm text-light">上午：</span>
+            <span class="time-item time-primary"
+              >7:00（4大，锦业7门7:05停靠）</span
+            >
+            <span class="time-item time-primary">8:00（2大）</span>
+            <span class="time-item time-primary">9:00（3大）</span>
+            <span class="time-item time-primary">10:30（1大）</span>
+            <p class="text-xs text-light mt-1">
+              注：除7:00班次外，其余上午车次中途在华美十字(7:15左右)停靠
+            </p>
+          </div>
+          <div>
+            <span class="text-sm text-light">下午：</span>
+            <span class="time-item time-primary">12:30（2大）</span>
+            <span class="time-item time-primary">14:15（1大）</span>
+            <span class="time-item time-primary">16:00（1大）</span>
+            <span class="time-item time-primary">17:30（1大）</span>
+            <span class="time-item time-primary">18:30（1大）</span>
+          </div>
+        </div>
+
+        <!-- 雁塔→草堂 - 周末 (默认隐藏) -->
+        <div id="ytToCtWeekend" class="mb-4 hidden">
+          <h3 class="font-semibold text-primary mb-2 flex items-center">
+            <i class="fa fa-arrow-right mr-1"></i> 雁塔校区 → 草堂校区
+          </h3>
+          <div class="mb-2">
+            <span class="text-sm text-light">上午：</span>
+            <span class="time-item time-primary">7:00（2大）</span>
+            <span class="time-item time-primary">10:30（1大）</span>
+          </div>
+          <div>
+            <span class="text-sm text-light">下午：</span>
+            <span class="time-item time-primary">12:30（2大）</span>
+            <span class="time-item time-primary">16:00（3大）</span>
+          </div>
+        </div>
+
+        <!-- 草堂→雁塔 - 工作日 -->
+        <div id="ctToYtWeekday">
+          <h3 class="font-semibold text-secondary mb-2 flex items-center">
+            <i class="fa fa-arrow-left mr-1"></i> 草堂校区 → 雁塔校区
+          </h3>
+          <div class="mb-2">
+            <span class="text-sm text-light">上午：</span>
+            <span class="time-item time-secondary">8:30（1大）</span>
+            <span class="time-item time-secondary">10:20（1大）</span>
+            <span class="time-item time-secondary">12:15（2大）</span>
+            <span class="time-item time-secondary">13:10（2大）</span>
+          </div>
+          <div>
+            <span class="text-sm text-light">下午：</span>
+            <span class="time-item time-secondary">14:00（1大）</span>
+            <span class="time-item time-secondary">15:50（3大）</span>
+            <span class="time-item time-secondary">17:00（1大）</span>
+            <span class="time-item time-secondary">17:40（3大）</span>
+            <span class="time-item time-secondary">19:10（1大）</span>
+            <span class="time-item time-secondary">21:20（1大）</span>
+          </div>
+        </div>
+
+        <!-- 草堂→雁塔 - 周末 (默认隐藏) -->
+        <div id="ctToYtWeekend" class="hidden">
+          <h3 class="font-semibold text-secondary mb-2 flex items-center">
+            <i class="fa fa-arrow-left mr-1"></i> 草堂校区 → 雁塔校区
+          </h3>
+          <div class="mb-2">
+            <span class="text-sm text-light">上午：</span>
+            <span class="time-item time-secondary">8:30（2大）</span>
+            <span class="time-item time-secondary">12:15（1大）</span>
+          </div>
+          <div>
+            <span class="text-sm text-light">下午：</span>
+            <span class="time-item time-secondary">14:00（2大）</span>
+            <span class="time-item time-secondary">17:40（3大）</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 雁塔↔幸福 时刻表 -->
+      <section class="bus-card">
+        <h2 class="text-lg font-bold mb-3 flex items-center">
+          <i class="fa fa-car text-primary mr-2"></i>
+          雁塔校区 ↔ 幸福校区
+        </h2>
+
+        <!-- 雁塔→幸福 - 工作日 夏令时 -->
+        <div id="ytToXfWeekdaySummer" class="mb-4">
+          <h3 class="font-semibold text-primary mb-2 flex items-center">
+            <i class="fa fa-arrow-right mr-1"></i> 雁塔校区 → 幸福校区
+          </h3>
+          <div class="mb-2">
+            <span class="text-sm text-light">上午：</span>
+            <span class="time-item time-primary">7:30（1大）</span>
+            <span class="time-item time-primary">8:00（1大）</span>
+            <span class="time-item time-primary">9:35（1大）</span>
+          </div>
+          <div>
+            <span class="text-sm text-light">下午：</span>
+            <span class="time-item time-primary">14:05（2大）</span>
+            <span class="time-item time-primary">14:30（1小）</span>
+            <span class="time-item time-primary">16:05（1大）</span>
+          </div>
+        </div>
+
+        <!-- 雁塔→幸福 - 工作日 冬令时 (默认隐藏) -->
+        <div id="ytToXfWeekdayWinter" class="mb-4 hidden">
+          <h3 class="font-semibold text-primary mb-2 flex items-center">
+            <i class="fa fa-arrow-right mr-1"></i> 雁塔校区 → 幸福校区
+          </h3>
+          <div class="mb-2">
+            <span class="text-sm text-light">上午：</span>
+            <span class="time-item time-primary">7:30（1大）</span>
+            <span class="time-item time-primary">8:00（1大）</span>
+            <span class="time-item time-primary">9:35（1大）</span>
+          </div>
+          <div>
+            <span class="text-sm text-light">下午：</span>
+            <span class="time-item time-primary">13:35（2大）</span>
+            <span class="time-item time-primary">14:00（1小）</span>
+            <span class="time-item time-primary">15:35（1大）</span>
+          </div>
+        </div>
+
+        <!-- 雁塔→幸福 - 周末 -->
+        <div id="ytToXfWeekend" class="mb-4 hidden">
+          <h3 class="font-semibold text-primary mb-2 flex items-center">
+            <i class="fa fa-arrow-right mr-1"></i> 雁塔校区 → 幸福校区
+          </h3>
+          <div class="text-center py-3 text-light">周末无此线路班车</div>
+        </div>
+
+        <!-- 幸福→雁塔 - 工作日 夏令时 -->
+        <div id="xfToYtWeekdaySummer">
+          <h3 class="font-semibold text-secondary mb-2 flex items-center">
+            <i class="fa fa-arrow-left mr-1"></i> 幸福校区 → 雁塔校区
+          </h3>
+          <div class="mb-2">
+            <span class="text-sm text-light">上午：</span>
+            <span class="time-item time-secondary">10:10（1大）</span>
+            <span class="time-item time-secondary">12:00（2大）</span>
+          </div>
+          <div>
+            <span class="text-sm text-light">下午：</span>
+            <span class="time-item time-secondary">16:40（1大）</span>
+            <span class="time-item time-secondary">18:25（1大1小）</span>
+          </div>
+        </div>
+
+        <!-- 幸福→雁塔 - 工作日 冬令时 (默认隐藏) -->
+        <div id="xfToYtWeekdayWinter" class="hidden">
+          <h3 class="font-semibold text-secondary mb-2 flex items-center">
+            <i class="fa fa-arrow-left mr-1"></i> 幸福校区 → 雁塔校区
+          </h3>
+          <div class="mb-2">
+            <span class="text-sm text-light">上午：</span>
+            <span class="time-item time-secondary">10:10（1大）</span>
+            <span class="time-item time-secondary">12:00（2大）</span>
+          </div>
+          <div>
+            <span class="text-sm text-light">下午：</span>
+            <span class="time-item time-secondary">16:10（1大）</span>
+            <span class="time-item time-secondary">17:55（1大1小）</span>
+          </div>
+        </div>
+
+        <!-- 幸福→雁塔 - 周末 -->
+        <div id="xfToYtWeekend" class="hidden">
+          <h3 class="font-semibold text-secondary mb-2 flex items-center">
+            <i class="fa fa-arrow-left mr-1"></i> 幸福校区 → 雁塔校区
+          </h3>
+          <div class="text-center py-3 text-light">周末无此线路班车</div>
+        </div>
+      </section>
+
+      <!-- 温馨提示 -->
+      <section class="bus-card">
+        <h2 class="text-lg font-bold mb-3 flex items-center">
+          <i class="fa fa-lightbulb-o text-primary mr-2"></i>
+          温馨提示
+        </h2>
+
+        <div class="space-y-3 text-sm">
+          <div>
+            <h3 class="font-semibold mb-1">车型说明</h3>
+            <p>• 「大」=46座班车 | 「小」=21座考斯特</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold mb-1">乘车点</h3>
+            <p>
+              • 草堂校区：教师（通勤车停车场/学府城16号楼）|
+              学生（学府城1号楼，需排队）
+            </p>
+            <p>• 雁塔校区：按现场指引乘车</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold mb-1">联系电话</h3>
+            <p>
+              • 雁塔↔草堂：<a
+                href="tel:82203369"
+                class="text-primary hover:underline"
+                >82203369</a
+              >
+            </p>
+            <p>
+              • 雁塔↔幸福：<a
+                href="tel:82628222"
+                class="text-primary hover:underline"
+                >82628222</a
+              >
+            </p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold mb-1">其他信息</h3>
+            <p>• 寒暑假/节假日时刻表：请查看学校官网「通知公告」栏</p>
+            <p>• 周末无雁塔校区↔幸福校区班车</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="bg-white py-4 mt-6">
+      <div class="container mx-auto px-4 text-center text-xs text-light">
+        <p>制：西安建筑科技大学 后勤服务中心 华清学院</p>
+        <p>2025年1月</p>
+      </div>
+    </footer>
+
+    <script>
+      // 日期切换功能
+      const weekdayBtn = document.getElementById("weekdayBtn");
+      const weekendBtn = document.getElementById("weekendBtn");
+
+      // 时令切换功能
+      const summerBtn = document.getElementById("summerBtn");
+      const winterBtn = document.getElementById("winterBtn");
+
+      // 工作日元素
+      const weekdayElements = [
+        "ytToCtWeekday",
+        "ctToYtWeekday",
+        "ytToXfWeekdaySummer",
+        "ytToXfWeekdayWinter",
+        "xfToYtWeekdaySummer",
+        "xfToYtWeekdayWinter",
+      ];
+
+      // 周末元素
+      const weekendElements = [
+        "ytToCtWeekend",
+        "ctToYtWeekend",
+        "ytToXfWeekend",
+        "xfToYtWeekend",
+      ];
+
+      // 夏令时元素（仅工作日）
+      const summerElements = ["ytToXfWeekdaySummer", "xfToYtWeekdaySummer"];
+
+      // 冬令时元素（仅工作日）
+      const winterElements = ["ytToXfWeekdayWinter", "xfToYtWeekdayWinter"];
+
+      // 显示工作日，隐藏周末
+      function showWeekday() {
+        weekdayBtn.classList.remove("tab-inactive");
+        weekdayBtn.classList.add("tab-active");
+        weekendBtn.classList.remove("tab-active");
+        weekendBtn.classList.add("tab-inactive");
+
+        weekdayElements.forEach((id) => {
+          document.getElementById(id).classList.remove("hidden");
+        });
+
+        weekendElements.forEach((id) => {
+          document.getElementById(id).classList.add("hidden");
+        });
+      }
+
+      // 显示周末，隐藏工作日
+      function showWeekend() {
+        weekendBtn.classList.remove("tab-inactive");
+        weekendBtn.classList.add("tab-active");
+        weekdayBtn.classList.remove("tab-active");
+        weekdayBtn.classList.add("tab-inactive");
+
+        // 隐藏所有工作日元素
+        weekdayElements.forEach((id) => {
+          document.getElementById(id).classList.add("hidden");
+        });
+
+        // 显示所有周末元素
+        weekendElements.forEach((id) => {
+          document.getElementById(id).classList.remove("hidden");
+        });
+      }
+
+      // 显示夏令时，隐藏冬令时
+      function showSummer() {
+        summerBtn.classList.remove("tab-inactive");
+        summerBtn.classList.add("tab-active");
+        winterBtn.classList.remove("tab-active");
+        winterBtn.classList.add("tab-inactive");
+
+        // 只在工作日时切换夏令时/冬令时
+        if (!weekendBtn.classList.contains("tab-active")) {
+          summerElements.forEach((id) => {
+            document.getElementById(id).classList.remove("hidden");
+          });
+
+          winterElements.forEach((id) => {
+            document.getElementById(id).classList.add("hidden");
+          });
+        }
+      }
+
+      // 显示冬令时，隐藏夏令时
+      function showWinter() {
+        winterBtn.classList.remove("tab-inactive");
+        winterBtn.classList.add("tab-active");
+        summerBtn.classList.remove("tab-active");
+        summerBtn.classList.add("tab-inactive");
+
+        // 只在工作日时切换夏令时/冬令时
+        if (!weekendBtn.classList.contains("tab-active")) {
+          winterElements.forEach((id) => {
+            document.getElementById(id).classList.remove("hidden");
+          });
+
+          summerElements.forEach((id) => {
+            document.getElementById(id).classList.add("hidden");
+          });
+        }
+      }
+
+      // 绑定点击事件
+      weekdayBtn.addEventListener("click", showWeekday);
+      weekendBtn.addEventListener("click", showWeekend);
+      summerBtn.addEventListener("click", showSummer);
+      winterBtn.addEventListener("click", showWinter);
+
+      // 页面加载时根据当前日期自动显示对应的时刻表
+      const today = new Date();
+      const month = today.getMonth() + 1; // 月份从0开始，所以加1
+
+      // 判断是工作日还是周末
+      const day = today.getDay();
+      if (day === 0 || day === 6) {
+        // 周末
+        showWeekend();
+      } else {
+        // 工作日
+        showWeekday();
+      }
+
+      // 判断是夏令时还是冬令时
+      if (month >= 5 && month <= 9) {
+        // 5-9月显示夏令时
+        showSummer();
+      } else {
+        // 其他月份显示冬令时
+        showWinter();
+      }
+
+      // 平滑滚动
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", function (e) {
+          e.preventDefault();
+          document.querySelector(this.getAttribute("href")).scrollIntoView({
+            behavior: "smooth",
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
